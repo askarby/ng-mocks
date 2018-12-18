@@ -109,6 +109,18 @@ describe('MockDirective', () => {
     expect(debugElement.nativeElement.innerHTML).toContain('hi');
   });
 
+  fit('allows you to assert on structural directive input', () => {
+    const debugElement = fixture.debugElement.query(By.css('#example-structural-directive'));
+
+    // ideally
+    const element = debugElement.injector.get(MockDirective(ExampleStructuralDirective)); // tslint:disable-line
+    expect(element.exampleStructuralDirective).toBe(true);
+
+    // acceptable :shrug:
+    const data = debugElement.nativeElement.getAttribute('exampleStructuralDirective');
+    expect(data.exampleStructuralDirective).toBe(true);
+  });
+
   it('should set ViewChild directives correctly', () => {
     fixture.detectChanges();
     expect(component.childDirective).toBeTruthy();

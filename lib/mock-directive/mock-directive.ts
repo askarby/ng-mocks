@@ -1,5 +1,5 @@
 import {
-  Directive, EventEmitter, forwardRef, Inject, Optional, TemplateRef, Type, ViewContainerRef
+  Directive, ElementRef, EventEmitter, forwardRef, Inject, OnChanges, Optional, TemplateRef, Type, ViewContainerRef
 } from '@angular/core';
 import { MockOf } from '../common';
 import { directiveResolver } from '../common/reflect';
@@ -30,8 +30,11 @@ export function MockDirective<TDirective>(directive: Type<TDirective>): Type<TDi
     }],
     selector
   })
-  class DirectiveMock {
-    constructor(@Optional() @Inject(TemplateRef) templateRef?: TemplateRef<any>,
+  class DirectiveMock implements OnChanges {
+    private structural = false;
+
+    constructor(private hostElement: ElementRef,
+                @Optional() @Inject(TemplateRef) templateRef?: TemplateRef<any>,
                 @Optional() @Inject(ViewContainerRef) viewContainer?: ViewContainerRef) {
 
       Object.keys(directive.prototype).forEach((method) => {
@@ -45,13 +48,24 @@ export function MockDirective<TDirective>(directive: Type<TDirective>): Type<TDi
       });
 
       if (templateRef && viewContainer) {
+        this.structural = true;
         viewContainer.createEmbeddedView(templateRef);
       }
+    }
+
+    ngOnChanges() {
+      if (!this.structural) {
+        return;
+      }
+      const inputValues = (inputs || []).reduce((acc, input) => acc[input] = (this as any)[input],
+                                                {} as { [key: string]: any }); // tslint:disable-line
+      const strippedSelector = (selector || '').replace(/^\[|\]$/g, '');
+      this.hostElement.nativeElement.setAttribute(strippedSelector, JSON.stringify(inputValues));
     }
   }
   // tslint:enable:no-unnecessary-class
 
-  cache.set(directive, DirectiveMock);
+  cache.set(directive, DirectiveMock as any);
 
-  return DirectiveMock as Type<TDirective>;
+  return DirectiveMock as any;
 }

@@ -17,6 +17,7 @@
     "no-implicit-dependencies": [true, "dev"],
     "no-floating-promises": false,
     "no-focused-tests": true,
+    "no-parameter-properties": false,
     "no-submodule-imports": false,
     "no-unsafe-any": false,
     "no-use-before-declare": false,
